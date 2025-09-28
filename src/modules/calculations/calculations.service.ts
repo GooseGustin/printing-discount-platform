@@ -7,11 +7,11 @@ import { Transaction } from '../../models/transaction.model';
 import { Printer } from '../../models/printer.model';
 
 // utilities
-import { getCurrentWeek } from '@/common/utils/week.util';
-import { getWeeklyCap } from '@/common/utils/cap.util';
-import { calculateCost } from '@/common/utils/cost.util';
-import { calculateMixed } from '@/common/utils/mixed.util';
-import { deductBalance } from '@/common/utils/balance.util';
+import { getCurrentWeek } from '../../../src/common/utils/week.util';
+import { getWeeklyCap } from '../../../src/common/utils/cap.util';
+import { calculateCost } from '../../../src/common/utils/cost.util';
+import { calculateMixed } from '../../../src/common/utils/mixed.util';
+import { deductBalance } from '../../../src/common/utils/balance.util';
 
 @Injectable()
 export class CalculationsService {

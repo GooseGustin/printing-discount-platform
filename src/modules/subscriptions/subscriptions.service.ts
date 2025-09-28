@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Subscription } from '../../models/subscription.model';
 import { User } from '../../models/user.model';
 import { Plan } from '../../models/plan.model';
-import { getCurrentWeek } from '@/common/utils/week.util';
+import { getCurrentWeek } from '../../../src/common/utils/week.util';
 
 @Injectable()
 export class SubscriptionsService {
