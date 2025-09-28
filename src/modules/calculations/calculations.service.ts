@@ -1,17 +1,17 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Subscription } from '../../models/subscription.model';
-import { User } from '../../models/user.model';
-import { Plan } from '../../models/plan.model';
-import { Transaction } from '../../models/transaction.model';
-import { Printer } from '../../models/printer.model';
+import { Subscription } from 'src/models/subscription.model';
+import { User } from 'src/models/user.model';
+import { Plan } from 'src/models/plan.model';
+import { Transaction } from 'src/models/transaction.model';
+import { Printer } from 'src/models/printer.model';
 
 // utilities
-import { getCurrentWeek } from '../../../src/common/utils/week.util';
-import { getWeeklyCap } from '../../../src/common/utils/cap.util';
-import { calculateCost } from '../../../src/common/utils/cost.util';
-import { calculateMixed } from '../../../src/common/utils/mixed.util';
-import { deductBalance } from '../../../src/common/utils/balance.util';
+import { getCurrentWeek } from 'src/common/utils/week.util';
+import { getWeeklyCap } from 'src/common/utils/cap.util';
+import { calculateCost } from 'src/common/utils/cost.util';
+import { calculateMixed } from 'src/common/utils/mixed.util';
+import { deductBalance } from 'src/common/utils/balance.util';
 
 @Injectable()
 export class CalculationsService {

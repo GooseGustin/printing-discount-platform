@@ -1,9 +1,9 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Subscription } from '../../models/subscription.model';
-import { User } from '../../models/user.model';
-import { Plan } from '../../models/plan.model';
-import { getCurrentWeek } from '../../../src/common/utils/week.util';
+import { Subscription } from 'src/models/subscription.model';
+import { User } from 'src/models/user.model';
+import { Plan } from 'src/models/plan.model';
+import { getCurrentWeek } from 'src/common/utils/week.util';
 
 @Injectable()
 export class SubscriptionsService {

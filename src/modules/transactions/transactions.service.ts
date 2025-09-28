@@ -1,8 +1,8 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Transaction } from '../../models/transaction.model';
-import { User } from '../../models/user.model';
-import { Plan } from '../../models/plan.model';
+import { Transaction } from 'src/models/transaction.model';
+import { User } from 'src/models/user.model';
+import { Plan } from 'src/models/plan.model';
 
 @Injectable()
 export class TransactionsService {

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 // Import models
 import { User } from '../models/user.model';
@@ -9,7 +10,6 @@ import { Transaction } from '../models/transaction.model';
 import { Receipt } from '../models/receipt.model';
 import { Session } from '../models/session.model';
 import { Printer } from '../models/printer.model';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
