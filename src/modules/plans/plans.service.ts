@@ -1,7 +1,7 @@
 // src/modules/plans/plans.service.ts
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Plan } from 'src/models/plan.model';
+import { Plan } from '../../models/plan.model';
 
 @Injectable()
 export class PlansService {

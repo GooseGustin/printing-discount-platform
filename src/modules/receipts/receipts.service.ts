@@ -1,9 +1,9 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Receipt } from 'src/models/receipt.model';
-import { Transaction } from 'src/models/transaction.model';
-import { Subscription } from 'src/models/subscription.model';
-import { Plan } from 'src/models/plan.model';
+import { Receipt } from '../../models/receipt.model';
+import { Transaction } from '../../models/transaction.model';
+import { Subscription } from '../../models/subscription.model';
+import { Plan } from '../../models/plan.model';
 
 @Injectable()
 export class ReceiptsService {

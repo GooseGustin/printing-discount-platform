@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { User } from 'src/models/user.model';
+import { User } from '../../models/user.model';
 
 import { Logger } from '@nestjs/common';
-import { Printer } from 'src/models/printer.model';
+import { Printer } from '../../models/printer.model';
 
 @Injectable()
 export class UsersService {
