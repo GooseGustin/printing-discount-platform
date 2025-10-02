@@ -9,6 +9,7 @@ import { SubscriptionsModule } from './modules/subscriptions/subscriptions.modul
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { ReceiptsModule } from './modules/receipts/receipts.module';
 import { CalculationsModule } from './modules/calculations/calculations.module';
+import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 
 
 @Module({
@@ -24,7 +25,8 @@ import { CalculationsModule } from './modules/calculations/calculations.module';
     ReceiptsModule,
     SubscriptionsModule, 
     TransactionsModule, 
-    CalculationsModule
+    CalculationsModule, 
+    WhatsappModule,
   ],
   controllers: [],
   providers: [],
