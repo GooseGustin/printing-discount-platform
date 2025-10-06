@@ -11,7 +11,7 @@ import { TransactionsModule } from '../transactions/transactions.module';
 // Handlers
 import { MainMenuHandler } from './handlers/main-menu.handler';
 import { BuyPlanHandler } from './handlers/buy-plan.handler';
-import { UploadReceiptHandler } from './handlers/upload-receipt.handler';
+import { ReceiptUploadHandler } from './handlers/receipt-upload.handler';
 
 @Module({
   imports: [
@@ -25,7 +25,7 @@ import { UploadReceiptHandler } from './handlers/upload-receipt.handler';
     WhatsappService,
     MainMenuHandler,
     BuyPlanHandler,
-    UploadReceiptHandler,
+    ReceiptUploadHandler,
   ],
   exports: [WhatsappService],
 })
