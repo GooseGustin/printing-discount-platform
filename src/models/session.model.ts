@@ -9,6 +9,13 @@ import { User } from './user.model';
 
 @Table({ tableName: 'Sessions' })
 export class Session extends Model<Session> {
+  @Column({
+    type: DataType.UUID,
+    defaultValue: DataType.UUIDV4,  // ✅ auto-generate UUIDs
+    primaryKey: true,
+  })
+  id: string;
+  
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   userId: string;
