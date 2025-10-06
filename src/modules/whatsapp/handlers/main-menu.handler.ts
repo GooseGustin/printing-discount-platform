@@ -1,5 +1,7 @@
+import { Injectable } from '@nestjs/common';
 import { SessionService } from '../../sessions/sessions.service';
 
+@Injectable()
 export class MainMenuHandler {
   constructor(private readonly sessionService: SessionService) {}
 
