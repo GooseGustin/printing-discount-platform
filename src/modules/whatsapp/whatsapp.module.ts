@@ -12,6 +12,7 @@ import { TransactionsModule } from '../transactions/transactions.module';
 import { MainMenuHandler } from './handlers/main-menu.handler';
 import { BuyPlanHandler } from './handlers/buy-plan.handler';
 import { ReceiptUploadHandler } from './handlers/receipt-upload.handler';
+import { ReceiptsModule } from '../receipts/receipts.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ReceiptUploadHandler } from './handlers/receipt-upload.handler';
     SessionsModule,
     PlansModule,
     TransactionsModule,
+    ReceiptsModule,
   ],
   controllers: [WhatsappController],
   providers: [
