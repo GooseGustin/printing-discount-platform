@@ -30,7 +30,7 @@ export class MessageRouterService {
     // 1️⃣ Handle receipt image uploads
     if (type === 'image' && session.step === 'AWAIT_RECEIPT_UPLOAD') {
       const imageUrl = message.image?.url;
-      return this.receiptUploadHandler.handleReceiptUpload(user.id, imageUrl);
+      return this.receiptUploadHandler.handleResponse(user.id, imageUrl);
     }
 
     // 2️⃣ Handle text messages

@@ -43,23 +43,12 @@ export class WhatsappController {
 
     if (messages && messages[0]) {
       const msg = messages[0];
-      const from = msg.from; // phone number
-      const text = msg.text?.body;
+      const from = msg.from; // WhatsApp phone number (e.g. '2348156455127')
+      const text = msg.text?.body?.trim();
 
       this.logger.log(`Incoming from ${from}: ${text}`);
 
-      // Basic menu flow
-      if (text?.toLowerCase() === 'hi' || text?.toLowerCase() === 'menu') {
-        await this.whatsappService.sendMessage(
-          from,
-          `Welcome to PrintEase! ✨\n\nChoose an option:\n1. View my balance\n2. Buy a plan\n3. Check my subscriptions\n4. Calculate cost`,
-        );
-      } else {
-        await this.whatsappService.sendMessage(
-          from,
-          `Sorry, I didn't understand that. Type "menu" to see options.`,
-        );
-      }
+      await this.whatsappService.handleIncomingMessage(from, text);
     }
 
     return { status: 'EVENT_RECEIVED' };

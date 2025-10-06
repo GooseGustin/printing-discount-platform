@@ -15,7 +15,7 @@ export class ReceiptUploadHandler {
    * Called when user is at UPLOAD_RECEIPT step.
    * Message may contain either image attachment or invalid input.
    */
-  async handleReceiptUpload(userPhone: string, message: any) {
+  async handleResponse(userPhone: string, message: any) {
     const user = await this.usersService.findByPhone(userPhone);
     if (!user) {
       throw new BadRequestException('User not found.');
