@@ -70,4 +70,8 @@ export class UsersService {
   async findById(id: string) {
     return this.userModel.findByPk(id);
   }
+
+  async findByPhone(phone: string) {
+    return this.userModel.findOne({ where: { phone } });
+  }
 }

@@ -1,4 +1,3 @@
-// src/models/receipt.model.ts
 import {
   Table,
   Column,
@@ -7,10 +6,10 @@ import {
   ForeignKey,
   BelongsTo,
 } from 'sequelize-typescript';
-import { Transaction } from './transaction.model';
 import { User } from './user.model';
+import { Transaction } from './transaction.model';
 
-@Table
+@Table({ tableName: 'Receipts' })
 export class Receipt extends Model<Receipt> {
   @Column({
     type: DataType.UUID,
@@ -30,12 +29,22 @@ export class Receipt extends Model<Receipt> {
   @Column(DataType.UUID)
   userId: string;
 
+  @BelongsTo(() => User)
+  user: User;
+
   @Column(DataType.STRING)
-  fileUrl: string;
+  imageUrl: string;
 
   @Column({
     type: DataType.ENUM('pending', 'approved', 'rejected'),
     defaultValue: 'pending',
   })
   status: 'pending' | 'approved' | 'rejected';
+
+  @Column({
+    type: DataType.DATE,
+    allowNull: false,
+    defaultValue: DataType.NOW,
+  })
+  uploadedAt: Date;
 }

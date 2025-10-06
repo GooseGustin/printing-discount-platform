@@ -1,14 +1,15 @@
 // src/modules/plans/plans.controller.ts
-import { Controller, Get, Param } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { PlansService } from './plans.service';
+import { CreatePlanDto } from './create-plan.dto';
 
 @Controller('plans')
 export class PlansController {
   constructor(private readonly plansService: PlansService) {}
 
-  @Get('seed')
-  async seed() {
-    return this.plansService.seed();
+  @Post()
+  async create(@Body() dto: CreatePlanDto) {
+    return this.plansService.createPlan(dto);
   }
 
   @Get()
@@ -21,3 +22,8 @@ export class PlansController {
     return this.plansService.findById(id);
   }
 }
+
+  // @Get('seed')
+  // async seed() {
+  //   return this.plansService.seed();
+  // }

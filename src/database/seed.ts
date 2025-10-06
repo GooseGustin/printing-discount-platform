@@ -1,16 +1,81 @@
-// src/database/seed.ts
+import 'dotenv/config';
 import { Sequelize } from 'sequelize-typescript';
 import { Plan } from '../models/plan.model';
 import { Printer } from '../models/printer.model';
+import { User } from '../models/user.model';
 
 async function seed() {
+  // Create Sequelize instance pointing to Supabase Postgres
   const sequelize = new Sequelize({
-    dialect: 'sqlite',
-    storage: 'dev.sqlite',
+    dialect: 'postgres',
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT),
+    username: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
     models: [Plan, Printer],
+    dialectOptions: {
+      ssl: { require: true, rejectUnauthorized: false },
+    },
+    logging: console.log, // helpful to see SQL queries
   });
 
-  await sequelize.sync({ force: false });
+  await sequelize.authenticate();
+  console.log('✅ Connected to Supabase');
+
+  await sequelize.sync({ force: true });
+
+    // Seed Users
+  const student = await User.create({
+    name: 'Test Student',
+    phone: '08010000001',
+    role: 'student',
+    status: 'active',
+  });
+
+  const printerUser1 = await User.create({
+    name: 'Printer User Alpha',
+    phone: '08020000002',
+    role: 'printer',
+    status: 'active',
+  });
+
+  const printerUser2 = await User.create({
+    name: 'Printer User Beta',
+    phone: '08020000003',
+    role: 'printer',
+    status: 'active',
+  });
+
+  const admin = await User.create({
+    name: 'System Admin',
+    phone: '08030000004',
+    role: 'admin',
+    status: 'active',
+  });
+
+  // Seed Printers (linked to the printer users above)
+  const printer1 = await Printer.create({
+    userId: printerUser1.id,
+    name: 'Printer Alpha - Unijos Campus',
+    location: 'UNIJOS-PLATEAU',
+    baseCostPrinting: 50,
+    discountedPricePrinting: 45,
+    baseCostPhotocopy: 40,
+    discountedPricePhotocopy: 36,
+    contactPhone: '08012345678',
+  });
+
+  const printer2 = await Printer.create({
+    userId: printerUser2.id,
+    name: 'Printer Beta - Unijos Campus',
+    location: 'UNIJOS-PLATEAU',
+    baseCostPrinting: 55,
+    discountedPricePrinting: 47,
+    baseCostPhotocopy: 35,
+    discountedPricePhotocopy: 30,
+    contactPhone: '08012345348',
+  });
 
   // Seed Plans
   await Plan.bulkCreate([
@@ -26,6 +91,7 @@ async function seed() {
       photocopyWeeklyCaps: [7, 7, 7, 7],
       photocopyInitialCap: 15,
       duration: 'monthly',
+      location: 'UNIJOS-PLATEAU',
     },
     {
       name: '₦2,000 Plan',
@@ -39,6 +105,7 @@ async function seed() {
       photocopyWeeklyCaps: [15, 15, 15, 15],
       photocopyInitialCap: 30,
       duration: 'monthly',
+      location: 'UNIJOS-PLATEAU',
     },
     {
       name: '₦3,500 Plan',
@@ -52,6 +119,7 @@ async function seed() {
       photocopyWeeklyCaps: [25, 25, 25, 25],
       photocopyInitialCap: 45,
       duration: 'monthly',
+      location: 'UNIJOS-PLATEAU',
     },
     {
       name: '₦5,000 Plan',
@@ -65,29 +133,30 @@ async function seed() {
       photocopyWeeklyCaps: [39, 39, 39, 39],
       photocopyInitialCap: 60,
       duration: 'monthly',
-    },
-  ]);
-
-  // Seed Printers
-  await Printer.bulkCreate([
-    {
-      name: 'Printer A - Abuja Campus',
-      location: 'Abuja',
-      baseCostPrinting: 50,
-      baseCostPhotocopy: 40,
-      contactPhone: '08012345678',
+      location: 'UNIJOS-PLATEAU',
     },
     {
-      name: 'Printer B - Plateau Campus',
-      location: 'Plateau',
-      baseCostPrinting: 50,
-      baseCostPhotocopy: 30,
-      contactPhone: '08087654321',
+      name: '₦1,000 Plan',
+      price: 1000,
+      printingTotalPages: 22,
+      printingEffectiveRate: 45,
+      printingWeeklyCaps: [7, 6, 6, 6],
+      printingInitialCap: 10,
+      photocopyTotalPages: 27,
+      photocopyEffectiveRate: 36,
+      photocopyWeeklyCaps: [7, 7, 7, 7],
+      photocopyInitialCap: 15,
+      duration: 'monthly',
+      location: 'POLY-PLATEAU',
     },
-  ]);
+  ], 
+  { ignoreDuplicates: true }
+  );
 
   console.log('✅ Seeding complete.');
   await sequelize.close();
 }
 
-seed();
+seed().catch((err) => {
+  console.error('❌ Seeding failed:', err);
+});

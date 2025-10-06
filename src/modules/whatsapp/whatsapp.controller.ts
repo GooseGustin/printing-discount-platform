@@ -1,10 +1,21 @@
 // src/modules/whatsapp/whatsapp.controller.ts
-import { Controller, Get, Post, Query, Res, Body, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Query,
+  Res,
+  Body,
+  Logger,
+} from '@nestjs/common';
 import { Response } from 'express';
+import { WhatsappService } from './whatsapp.service';
 
 @Controller('whatsapp')
 export class WhatsappController {
   private readonly logger = new Logger(WhatsappController.name);
+
+  constructor(private readonly whatsappService: WhatsappService) {}
 
   @Get('webhook')
   verifyWebhook(
@@ -25,8 +36,32 @@ export class WhatsappController {
   }
 
   @Post('webhook')
-  handleIncoming(@Body() body: any) {
-    this.logger.debug('Incoming WhatsApp payload: ' + JSON.stringify(body, null, 2));
+  async handleIncoming(@Body() body: any) {
+    const entry = body?.entry?.[0];
+    const changes = entry?.changes?.[0];
+    const messages = changes?.value?.messages;
+
+    if (messages && messages[0]) {
+      const msg = messages[0];
+      const from = msg.from; // phone number
+      const text = msg.text?.body;
+
+      this.logger.log(`Incoming from ${from}: ${text}`);
+
+      // Basic menu flow
+      if (text?.toLowerCase() === 'hi' || text?.toLowerCase() === 'menu') {
+        await this.whatsappService.sendMessage(
+          from,
+          `Welcome to PrintEase! ✨\n\nChoose an option:\n1. View my balance\n2. Buy a plan\n3. Check my subscriptions\n4. Calculate cost`,
+        );
+      } else {
+        await this.whatsappService.sendMessage(
+          from,
+          `Sorry, I didn't understand that. Type "menu" to see options.`,
+        );
+      }
+    }
+
     return { status: 'EVENT_RECEIVED' };
   }
 }

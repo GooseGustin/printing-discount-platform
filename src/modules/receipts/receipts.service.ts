@@ -1,82 +1,136 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Receipt } from '../../models/receipt.model';
 import { Transaction } from '../../models/transaction.model';
-import { Subscription } from '../../models/subscription.model';
-import { Plan } from '../../models/plan.model';
+import { v2 as cloudinary } from 'cloudinary';
 
 @Injectable()
 export class ReceiptsService {
   constructor(
     @InjectModel(Receipt) private readonly receiptModel: typeof Receipt,
-    @InjectModel(Transaction) private readonly txModel: typeof Transaction,
-    @InjectModel(Subscription) private readonly subModel: typeof Subscription,
-    @InjectModel(Plan) private readonly planModel: typeof Plan,
-  ) {}
-
-  async upload(transactionId: string, url: string) {
-    const tx = await this.txModel.findByPk(transactionId);
-    if (!tx) throw new BadRequestException('Transaction not found');
-    if (tx.status !== 'pending') throw new BadRequestException('Transaction already processed');
-
-    return this.receiptModel.create({
-      transactionId,
-      fileUrl: url,
-      status: 'pending',
+    @InjectModel(Transaction)
+    private readonly transactionModel: typeof Transaction,
+  ) {
+    // Initialize Cloudinary (only once)
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
     });
   }
 
-  async approve(id: string) {
-    const receipt = await this.receiptModel.findByPk(id);
-    if (!receipt) throw new BadRequestException('Receipt not found');
+  /**
+   * Create and link a new receipt to the latest pending transaction of a user.
+   * If no pending transaction exists, throws an error.
+   */
+  async uploadReceipt(userId: string, imageUrl: string) {
+    // Step 1. Verify pending transaction
+    const pendingTx = await this.transactionModel.findOne({
+      where: { userId, status: 'pending' },
+      order: [['createdAt', 'DESC']],
+    });
 
-    const tx = await this.txModel.findByPk(receipt.transactionId);
-    if (!tx) throw new BadRequestException('Transaction not found');
-
-    // Flip both to approved
-    receipt.status = 'approved';
-    await receipt.save();
-    tx.status = 'approved';
-    await tx.save();
-
-    // Activate subscription if this was a payment
-    if (tx.type === 'payment' && tx.planId) {
-      const now = new Date();
-      const plan = await this.planModel.findByPk(tx.planId);
-      if (!plan) throw new BadRequestException('Plan not found');
-
-      const endDate =
-        plan.duration === 'weekly'
-          ? new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-          : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-
-      await this.subModel.create({
-        userId: tx.userId,
-        planId: tx.planId,
-        startDate: now,
-        endDate,
-        remainingPrintingPages: plan.printingWeeklyCaps[0],
-        remainingPhotocopyPages: plan.photocopyWeeklyCaps[0],
-        status: 'active',
-      });
+    if (!pendingTx) {
+      throw new BadRequestException(
+        'No pending transaction found to attach receipt.',
+      );
     }
+
+    // Step 2. Upload to Cloudinary
+    let uploadedImageUrl = imageUrl;
+    try {
+      const result = await cloudinary.uploader.upload(imageUrl, {
+        folder: 'receipts',
+        public_id: `receipt_${userId}_${Date.now()}`,
+        resource_type: 'image',
+      });
+      uploadedImageUrl = result.secure_url;
+    } catch (error) {
+      console.error('Cloudinary upload failed:', error.message);
+      throw new BadRequestException(
+        'Failed to upload receipt image. Please try again.',
+      );
+    }
+
+    // Step 3. Create receipt record
+    const receipt = await this.receiptModel.create({
+      userId,
+      transactionId: pendingTx.id,
+      imageUrl: uploadedImageUrl,
+      status: 'pending',
+      uploadedAt: new Date(),
+    });
+
+    return {
+      message: 'Receipt uploaded successfully.',
+      receiptId: receipt.id,
+      transactionRef: pendingTx.reference,
+      imageUrl: uploadedImageUrl,
+    };
+  }
+
+  /**
+   * Find all receipts for a given user.
+   */
+  async findByUser(userId: string) {
+    return this.receiptModel.findAll({
+      where: { userId },
+      include: [Transaction],
+      order: [['uploadedAt', 'DESC']],
+    });
+  }
+
+  /**
+   * Admin: Approve a receipt.
+   */
+  async approveReceipt(receiptId: string) {
+    const receipt = await this.receiptModel.findByPk(receiptId);
+    if (!receipt) throw new NotFoundException('Receipt not found');
+
+    await receipt.update({ status: 'approved' });
+
+    const tx = await this.transactionModel.findByPk(receipt.transactionId);
+    if (tx) await tx.update({ status: 'approved' });
 
     return receipt;
   }
 
-  async reject(id: string) {
-    const receipt = await this.receiptModel.findByPk(id);
-    if (!receipt) throw new BadRequestException('Receipt not found');
+  /**
+   * Admin: Reject a receipt.
+   */
+  async rejectReceipt(receiptId: string, reason?: string) {
+    const receipt = await this.receiptModel.findByPk(receiptId);
+    if (!receipt) throw new NotFoundException('Receipt not found');
 
-    const tx = await this.txModel.findByPk(receipt.transactionId);
-    if (!tx) throw new BadRequestException('Transaction not found');
+    const transaction = receipt.transaction;
+    if (!transaction) {
+      throw new BadRequestException('No transaction linked to this receipt.');
+    }
 
-    // Flip both to rejected
-    receipt.status = 'rejected';
-    await receipt.save();
-    tx.status = 'rejected';
-    await tx.save();
+    if (receipt.status !== 'pending') {
+      throw new BadRequestException('This receipt has already been processed.');
+    }
+    
+    await receipt.update({ status: 'rejected' });
 
-    return receipt;
+    const tx = await this.transactionModel.findByPk(receipt.transactionId);
+    if (tx) await tx.update({ status: 'rejected' });
+
+    return { receipt, message: reason || 'Receipt rejected.' };
+  }
+
+  /**
+   * Find the latest pending receipt for a user (useful for user notifications)
+   */
+  async findLatestPending(userId: string) {
+    return this.receiptModel.findOne({
+      where: { userId, status: 'pending' },
+      order: [['uploadedAt', 'DESC']],
+      include: [Transaction],
+    });
   }
 }

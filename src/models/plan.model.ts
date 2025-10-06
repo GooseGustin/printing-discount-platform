@@ -41,6 +41,9 @@ export class Plan extends Model<Plan> {
   @Column(DataType.INTEGER)
   photocopyInitialCap: number;
 
+  @Column(DataType.STRING)
+  location: string;
+
   @Column({
     type: DataType.ENUM('weekly', 'monthly'),
     defaultValue: 'monthly',

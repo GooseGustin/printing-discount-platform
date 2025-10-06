@@ -7,16 +7,32 @@ export class ReceiptsController {
 
   @Post()
   async upload(@Body() body: { transactionId: string; url: string }) {
-    return this.receiptsService.upload(body.transactionId, body.url);
+    return this.receiptsService.uploadReceipt(body.transactionId, body.url);
   }
 
+  // Admin permission only
   @Patch(':id/approve')
   async approve(@Param('id') id: string) {
-    return this.receiptsService.approve(id);
+    return this.receiptsService.approveReceipt(id);
   }
 
   @Patch(':id/reject')
   async reject(@Param('id') id: string) {
-    return this.receiptsService.reject(id);
+    return this.receiptsService.rejectReceipt(id);
   }
 }
+
+// @Controller('admin/receipts')
+// export class AdminReceiptsController {
+//   constructor(private readonly receiptsService: ReceiptsService) {}
+
+//   @Patch(':id/approve')
+//   approve(@Param('id') id: string) {
+//     return this.receiptsService.approveReceipt(id);
+//   }
+
+//   @Patch(':id/reject')
+//   reject(@Param('id') id: string) {
+//     return this.receiptsService.rejectReceipt(id);
+//   }
+// }
