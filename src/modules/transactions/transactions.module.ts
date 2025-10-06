@@ -17,12 +17,3 @@ import { CalculationsModule } from "../calculations/calculations.module";
   controllers: [TransactionsController],
 })
 export class TransactionsModule {}
-
-// receipts.module.ts
-@Module({
-  imports: [SequelizeModule.forFeature([Receipt, Transaction])],
-  providers: [ReceiptsService],
-  controllers: [ReceiptsController],
-})
-export class ReceiptsModule {}
-
