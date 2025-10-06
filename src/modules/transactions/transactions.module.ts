@@ -15,5 +15,6 @@ import { CalculationsModule } from "../calculations/calculations.module";
   imports: [SequelizeModule.forFeature([Transaction, User, Plan]), CalculationsModule],
   providers: [TransactionsService],
   controllers: [TransactionsController],
+  exports: [TransactionsService]
 })
 export class TransactionsModule {}
