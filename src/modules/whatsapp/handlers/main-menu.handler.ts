@@ -34,7 +34,7 @@ export class MainMenuHandler {
 
     switch (input) {
       case '1':
-        await this.sessionService.updateStateAndStep(userId, 'BUY_PLAN', 'SELECT_PLAN');
+        await this.sessionService.updateStateAndStep(userId, 'BUY_PLAN', 'SHOW_PLANS');
         return { 
           text: { body: 'Great! Fetching available plans for your institution...' },
           triggerNext: true, 
