@@ -32,7 +32,7 @@ export class WhatsappService {
 
     const session = await this.sessionService.getOrCreate(user.id);
     this.logger.log(
-      `Session for ${from}: state=${session.state}, step=${session.step}`,
+      `Session for ${user.name}, ${from}: state=${session.state}, step=${session.step}, check 1`,
     );
 
     let reply: { triggerNext?: any; text: any; };
@@ -76,6 +76,9 @@ export class WhatsappService {
     // Step 5: If triggerNext was set, call the next handler immediately
     if (reply?.triggerNext) {
       const updatedSession = await this.sessionService.getOrCreate(user.id);
+      this.logger.log(
+        `Session for ${user.name}, ${from}: state=${session.state}, step=${session.step} check 2`,
+      );
       switch (updatedSession.state) {
         case 'BUY_PLAN':
           const followUp = await this.buyPlanHandler.handleResponse(

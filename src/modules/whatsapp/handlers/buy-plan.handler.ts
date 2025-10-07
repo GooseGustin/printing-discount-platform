@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { UsersService } from '../../users/users.service';
 import { PlansService } from '../../plans/plans.service';
 import { TransactionsService } from '../../transactions/transactions.service';
@@ -7,6 +7,8 @@ import { generateReference } from '../../../common/utils/reference.util';
 
 @Injectable()
 export class BuyPlanHandler {
+  private readonly logger = new Logger(BuyPlanHandler.name);
+
   constructor(
     private readonly usersService: UsersService,
     private readonly plansService: PlansService,
@@ -17,7 +19,9 @@ export class BuyPlanHandler {
   async handleResponse(userPhone: string, message: string) {
     const user = await this.usersService.findByPhone(userPhone);
     let session = await this.sessionService.getOrCreate(user.id);
-
+    this.logger.log(
+          `Session for ${user.name}, ${userPhone}: state=${session.state}, step=${session.step}, check 3`,
+        );
     const { state, step, context } = session;
 
     // STEP 1 — Show plans for user's location
@@ -46,6 +50,10 @@ export class BuyPlanHandler {
         'CHOOSE_PLAN',
         { plans },
       );
+
+      this.logger.log(
+          `Session for ${user.name}, ${userPhone}: state=${session.state}, step=${session.step}, check 4, ${text}`,
+        );
 
       return { text: { body: text } };
     }
