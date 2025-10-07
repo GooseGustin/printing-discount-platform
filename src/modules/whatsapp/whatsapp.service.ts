@@ -1,4 +1,3 @@
-
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import { UsersService } from '../users/users.service';
@@ -18,59 +17,80 @@ export class WhatsappService {
     private readonly sessionService: SessionService,
     private readonly mainMenuHandler: MainMenuHandler,
     private readonly buyPlanHandler: BuyPlanHandler,
-    private readonly uploadReceiptHandler: ReceiptUploadHandler,
+    private readonly receiptUploadHandler: ReceiptUploadHandler,
   ) {}
 
-  async handleIncomingMessage(phone: string, text: string) {
-    // 1️⃣ Find user
-    const user = await this.usersService.findByPhone(phone);
+  async handleIncomingMessage(from: string, message: string) {
+    const user = await this.usersService.findByPhone(from);
     if (!user) {
       await this.sendMessage(
-        phone,
-        'Welcome to CopyWise! Please register first or contact support to get started.',
+        from,
+        `👋 You don’t seem registered yet. Please create an account first.`,
       );
       return;
     }
 
-    // 2️⃣ Get session
     const session = await this.sessionService.getOrCreate(user.id);
-    const state = session.state || 'MAIN_MENU';
-    const step = session.step || 'INIT';
+    this.logger.log(
+      `Session for ${from}: state=${session.state}, step=${session.step}`,
+    );
 
-    this.logger.log(`Session for ${phone}: state=${state}, step=${step}`);
+    let reply: { triggerNext?: any; text: any; };
+    let nextHandler: string | null = null;
 
-    // 3️⃣ Special case — reset to menu
-    if (text.toLowerCase() === 'menu' || text.toLowerCase() === 'hi') {
-      const menu = await this.mainMenuHandler.showMenu(user.id);
-      await this.sendMessage(phone, menu.text.body);
-      return;
+    // Reset flow if user says "hi" or "menu"
+    if (['hi', 'menu'].includes(message.trim().toLowerCase())) {
+      reply = await this.mainMenuHandler.showMenu(user.id);
+    } else {
+      switch (session.state) {
+        case 'MAIN_MENU':
+          reply = await this.mainMenuHandler.handleResponse(user.id, message);
+          if (reply?.triggerNext) nextHandler = session.state; // capture current state
+          break;
+
+        case 'BUY_PLAN':
+          reply = await this.buyPlanHandler.handleResponse(user.phone, message);
+          break;
+
+        case 'UPLOAD_RECEIPT':
+          reply = await this.receiptUploadHandler.handleResponse(
+            user.id,
+            message,
+          );
+          break;
+
+        default:
+          reply = {
+            text: {
+              body: 'Sorry, I didn’t understand that. Type "menu" to return.',
+            },
+          };
+      }
     }
 
-    // 4️⃣ Route by state
-    let response;
-
-    switch (state) {
-      case 'MAIN_MENU':
-        response = await this.mainMenuHandler.handleResponse(user.id, text);
-        break;
-
-      case 'BUY_PLAN':
-        response = await this.buyPlanHandler.handleResponse(phone, text);
-        break;
-
-      case 'UPLOAD_RECEIPT':
-        response = await this.uploadReceiptHandler.handleResponse(phone, text);
-        break;
-
-      default:
-        response = {
-          text: { body: "Sorry, I didn't understand that. Type 'menu' to see options." },
-        };
-        break;
+    // Step 4: Send current reply
+    if (reply?.text?.body) {
+      await this.sendMessage(from, reply.text.body);
     }
 
-    // 5️⃣ Send reply to user
-    await this.sendMessage(phone, response.text.body);
+    // Step 5: If triggerNext was set, call the next handler immediately
+    if (reply?.triggerNext) {
+      const updatedSession = await this.sessionService.getOrCreate(user.id);
+      switch (updatedSession.state) {
+        case 'BUY_PLAN':
+          const followUp = await this.buyPlanHandler.handleResponse(
+            user.phone,
+            '',
+          );
+          if (followUp?.text?.body)
+            await this.sendMessage(from, followUp.text.body);
+          break;
+
+        case 'CHECK_BALANCE':
+          // later → checkBalanceHandler
+          break;
+      }
+    }
   }
 
   async sendMessage(to: string, text: string) {
@@ -98,3 +118,55 @@ export class WhatsappService {
     }
   }
 }
+
+//  async handleIncomingMessage(phone: string, text: string) {
+//     // 1️⃣ Find user
+//     const user = await this.usersService.findByPhone(phone);
+//     if (!user) {
+//       await this.sendMessage(
+//         phone,
+//         'Welcome to CopyWise! Please register first or contact support to get started.',
+//       );
+//       return;
+//     }
+
+//     // 2️⃣ Get session
+//     const session = await this.sessionService.getOrCreate(user.id);
+//     const state = session.state || 'MAIN_MENU';
+//     const step = session.step || 'INIT';
+
+//     this.logger.log(`Session for ${user.name} ${phone}: state=${state}, step=${step}`);
+
+//     // 3️⃣ Special case — reset to menu
+//     if (text.toLowerCase() === 'menu' || text.toLowerCase() === 'hi') {
+//       const menu = await this.mainMenuHandler.showMenu(user.id);
+//       await this.sendMessage(phone, menu.text.body);
+//       return;
+//     }
+
+//     // 4️⃣ Route by state
+//     let response;
+
+//     switch (state) {
+//       case 'MAIN_MENU':
+//         response = await this.mainMenuHandler.handleResponse(user.id, text);
+//         break;
+
+//       case 'BUY_PLAN':
+//         response = await this.buyPlanHandler.handleResponse(phone, text);
+//         break;
+
+//       case 'UPLOAD_RECEIPT':
+//         response = await this.uploadReceiptHandler.handleResponse(phone, text);
+//         break;
+
+//       default:
+//         response = {
+//           text: { body: "Sorry, I didn't understand that. Type 'menu' to see options." },
+//         };
+//         break;
+//     }
+
+//     // 5️⃣ Send reply to user
+//     await this.sendMessage(phone, response.text.body);
+//   }
