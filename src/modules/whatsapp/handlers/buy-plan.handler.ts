@@ -44,7 +44,7 @@ export class BuyPlanHandler {
         `${plans.length + 1}. Upload Payment Receipt\n\n` +
         `Reply with a number to continue.`;
 
-      await this.sessionService.updateStateAndStep(
+      const updatedSession = await this.sessionService.updateStateAndStep(
         user.id,
         'BUY_PLAN',
         'CHOOSE_PLAN',
