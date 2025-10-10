@@ -44,11 +44,36 @@ export class WhatsappController {
     if (messages && messages[0]) {
       const msg = messages[0];
       const from = msg.from; // WhatsApp phone number (e.g. '2348156455127')
-      const text = msg.text?.body?.trim();
+      const type = msg.type; // 'text', 'image', 'button', etc.
+      let messageContent: any;
 
-      this.logger.log(`Incoming from ${from}: ${text}`);
+      // Handle text message
+      if (type === 'text') {
+        messageContent = msg.text?.body?.trim();
+      }
 
-      await this.whatsappService.handleIncomingMessage(from, text);
+      // Handle image message
+      else if (type === 'image') {
+        messageContent = {
+          mediaId: msg.image?.id,
+          mimeType: msg.image?.mime_type,
+        };
+      }
+
+      // You can expand this to handle other message types later (like audio, buttons, etc.)
+      else {
+        messageContent = null;
+      }
+
+      this.logger.log(
+        `Incoming from ${from}: type=${type}, content=${JSON.stringify(messageContent)}`,
+      );
+
+      await this.whatsappService.handleIncomingMessage(
+        from,
+        messageContent,
+        type,
+      );
     }
 
     return { status: 'EVENT_RECEIVED' };
