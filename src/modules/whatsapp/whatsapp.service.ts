@@ -75,7 +75,7 @@ export class WhatsappService {
       this.logger.log(
         `Session for ${user.name} (${from}): state=${session.state}, step=${session.step}, check 2`,
       );
-      if (session.state === 'AWAIT_RECEIPT_UPLOAD') {
+      if (session.state === 'BUY PLAN' && session.step === 'AWAIT_RECEIPT_UPLOAD') {
         reply = await this.receiptUploadHandler.handleResponse(
           user.id,
           message,
