@@ -32,7 +32,7 @@ export class WhatsappService {
 
     const session = await this.sessionService.getOrCreate(user.id);
     this.logger.log(
-      `Session for ${user.name} (${from}): state=${session.state}, step=${session.step}`,
+      `Session for ${user.name} (${from}): state=${session.state}, step=${session.step}, check 1`,
     );
 
     let reply: any;
@@ -72,6 +72,9 @@ export class WhatsappService {
       }
     } else if (type === 'image') {
       // handle image uploads separately
+      this.logger.log(
+        `Session for ${user.name} (${from}): state=${session.state}, step=${session.step}, check 2`,
+      );
       if (session.state === 'UPLOAD_RECEIPT') {
         reply = await this.receiptUploadHandler.handleResponse(
           user.id,
