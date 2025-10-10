@@ -90,8 +90,27 @@ export class WhatsappService {
       }
     }
 
-    // send final response
+    // send first response
     if (reply?.text?.body) await this.sendMessage(from, reply.text.body);
+
+    // If triggerNext was set, call the next handler immediately
+    if (reply?.triggerNext) {
+      const updatedSession = await this.sessionService.getOrCreate(user.id);
+      switch (updatedSession.state) {
+        case 'BUY_PLAN':
+          const followUp = await this.buyPlanHandler.handleResponse(
+            user.phone,
+            '',
+          );
+          if (followUp?.text?.body)
+            await this.sendMessage(from, followUp.text.body);
+          break;
+
+        case 'CHECK_BALANCE':
+          // later → checkBalanceHandler
+          break;
+      }
+    }
   }
 
   async sendMessage(to: string, text: string) {
