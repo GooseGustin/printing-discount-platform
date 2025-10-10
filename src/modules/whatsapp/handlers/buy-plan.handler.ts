@@ -141,7 +141,7 @@ export class BuyPlanHandler {
 
       if (input === 'NO' || input === 'CANCEL') {
         await this.sessionService.resetToMainMenu(user.id);
-        return { text: { body: 'Purchase cancelled. Returning to main menu.' } };
+        return { text: { body: 'Purchase cancelled. Type "menu" to return to main menu.' } };
       }
 
       return { text: { body: 'Please reply with "YES" or "NO".' } };

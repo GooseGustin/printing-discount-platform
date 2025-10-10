@@ -20,7 +20,7 @@ export class WhatsappService {
     private readonly receiptUploadHandler: ReceiptUploadHandler,
   ) {}
 
-  async handleIncomingMessage(from: string, message: string) {
+  async handleIncomingMessage(from: string, message: any, type: string) {
     const user = await this.usersService.findByPhone(from);
     if (!user) {
       await this.sendMessage(
@@ -32,68 +32,63 @@ export class WhatsappService {
 
     const session = await this.sessionService.getOrCreate(user.id);
     this.logger.log(
-      `Session for ${user.name}, ${from}: state=${session.state}, step=${session.step}, check 1`,
+      `Session for ${user.name} (${from}): state=${session.state}, step=${session.step}`,
     );
 
-    let reply: { triggerNext?: any; text: any; };
-    let nextHandler: string | null = null;
+    let reply: any;
 
-    // Reset flow if user says "hi" or "menu"
-    if (['hi', 'menu'].includes(message.trim().toLowerCase())) {
-      reply = await this.mainMenuHandler.showMenu(user.id);
-    } else {
-      switch (session.state) {
-        case 'MAIN_MENU':
-          reply = await this.mainMenuHandler.handleResponse(user.id, message);
-          if (reply?.triggerNext) nextHandler = session.state; // capture current state
-          break;
+    // handle text-based menu
+    if (type === 'text') {
+      if (['hi', 'menu'].includes(message.trim().toLowerCase())) {
+        reply = await this.mainMenuHandler.showMenu(user.id);
+      } else {
+        switch (session.state) {
+          case 'MAIN_MENU':
+            reply = await this.mainMenuHandler.handleResponse(user.id, message);
+            break;
 
-        case 'BUY_PLAN':
-          reply = await this.buyPlanHandler.handleResponse(user.phone, message);
-          break;
+          case 'BUY_PLAN':
+            reply = await this.buyPlanHandler.handleResponse(
+              user.phone,
+              message,
+            );
+            break;
 
-        case 'UPLOAD_RECEIPT':
-          reply = await this.receiptUploadHandler.handleResponse(
-            user.id,
-            message,
-          );
-          break;
+          case 'UPLOAD_RECEIPT':
+            reply = await this.receiptUploadHandler.handleResponse(
+              user.id,
+              message,
+              type,
+            );
+            break;
 
-        default:
-          reply = {
-            text: {
-              body: 'Sorry, I didn’t understand that. Type "menu" to return.',
-            },
-          };
+          default:
+            reply = {
+              text: {
+                body: 'Sorry, I didn’t get that. Type "menu" to return.',
+              },
+            };
+        }
+      }
+    } else if (type === 'image') {
+      // handle image uploads separately
+      if (session.state === 'UPLOAD_RECEIPT') {
+        reply = await this.receiptUploadHandler.handleResponse(
+          user.id,
+          message,
+          type,
+        );
+      } else {
+        reply = {
+          text: {
+            body: 'Unexpected image. Please use this option only to upload your receipt.',
+          },
+        };
       }
     }
 
-    // Step 4: Send current reply
-    if (reply?.text?.body) {
-      await this.sendMessage(from, reply.text.body);
-    }
-
-    // Step 5: If triggerNext was set, call the next handler immediately
-    if (reply?.triggerNext) {
-      const updatedSession = await this.sessionService.getOrCreate(user.id);
-      this.logger.log(
-        `Session for ${user.name}, ${from}: state=${session.state}, step=${session.step} check 2`,
-      );
-      switch (updatedSession.state) {
-        case 'BUY_PLAN':
-          const followUp = await this.buyPlanHandler.handleResponse(
-            user.phone,
-            '',
-          );
-          if (followUp?.text?.body)
-            await this.sendMessage(from, followUp.text.body);
-          break;
-
-        case 'CHECK_BALANCE':
-          // later → checkBalanceHandler
-          break;
-      }
-    }
+    // send final response
+    if (reply?.text?.body) await this.sendMessage(from, reply.text.body);
   }
 
   async sendMessage(to: string, text: string) {
