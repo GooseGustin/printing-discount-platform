@@ -3,6 +3,8 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Transaction } from '../../models/transaction.model';
 import { User } from '../../models/user.model';
 import { Plan } from '../../models/plan.model';
+import { WhatsappService } from '../whatsapp/whatsapp.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class TransactionsService {
@@ -10,6 +12,8 @@ export class TransactionsService {
     @InjectModel(Transaction) private readonly txModel: typeof Transaction,
     @InjectModel(User) private readonly userModel: typeof User,
     @InjectModel(Plan) private readonly planModel: typeof Plan,
+    private readonly whatsappService: WhatsappService,
+    private readonly usersService: UsersService,
   ) {}
 
   async create(userId: string, type: 'payment' | 'usage' | 'refund', amount: number, reference: string, planId?: string) {
@@ -40,6 +44,17 @@ export class TransactionsService {
     if (!tx) throw new BadRequestException('Transaction not found');
     tx.status = 'approved';
     await tx.save();
+
+    // Fetch user to send WhatsApp message
+    const user = await this.usersService.findById(tx.userId);
+
+    if (user?.phone) {
+      await this.whatsappService.sendMessage(
+        user.phone,
+        `✅ Your payment has been approved!\n\nPlan: ${tx.description || 'N/A'}\nAmount: ₦${tx.amount}\nReference: ${tx.reference}\n\nYour subscription is now active. 🎉`
+      );
+    }
+
     return tx;
   }
 
@@ -48,6 +63,17 @@ export class TransactionsService {
     if (!tx) throw new BadRequestException('Transaction not found');
     tx.status = 'rejected';
     await tx.save();
+    
+    // Fetch user to send WhatsApp message
+    const user = await this.usersService.findById(tx.userId);
+
+    if (user?.phone) {
+      await this.whatsappService.sendMessage(
+        user.phone,
+        `⚠️ Your payment was rejected.\n\nReference: ${tx.reference}\nPlease double-check your payment and upload a valid receipt.`
+      );
+    }
+
     return tx;
   }
 
@@ -58,4 +84,9 @@ export class TransactionsService {
     }
     return this.txModel.findAll({ where: { userId }, include: [Plan] });
   }
+
+  async findPending() {
+    return this.txModel.findAll({ where: { status: 'pending' }, order: [['createdAt', 'DESC']] });
+  }
+
 }

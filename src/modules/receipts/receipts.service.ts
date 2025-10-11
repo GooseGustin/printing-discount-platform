@@ -84,6 +84,10 @@ export class ReceiptsService {
     });
   }
 
+  async findByTransactionId(transactionId: string) {
+    return this.receiptModel.findOne({ where: { transactionId } });
+  }
+
   /**
    * Admin: Approve a receipt.
    */

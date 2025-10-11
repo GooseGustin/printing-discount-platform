@@ -21,18 +21,3 @@ export class ReceiptsController {
     return this.receiptsService.rejectReceipt(id);
   }
 }
-
-// @Controller('admin/receipts')
-// export class AdminReceiptsController {
-//   constructor(private readonly receiptsService: ReceiptsService) {}
-
-//   @Patch(':id/approve')
-//   approve(@Param('id') id: string) {
-//     return this.receiptsService.approveReceipt(id);
-//   }
-
-//   @Patch(':id/reject')
-//   reject(@Param('id') id: string) {
-//     return this.receiptsService.rejectReceipt(id);
-//   }
-// }

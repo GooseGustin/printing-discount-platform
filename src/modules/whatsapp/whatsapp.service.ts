@@ -5,6 +5,7 @@ import { SessionService } from '../sessions/sessions.service';
 import { MainMenuHandler } from './handlers/main-menu.handler';
 import { BuyPlanHandler } from './handlers/buy-plan.handler';
 import { ReceiptUploadHandler } from './handlers/receipt-upload.handler';
+import { AdminHandler } from './handlers/admin.handler';
 
 @Injectable()
 export class WhatsappService {
@@ -12,15 +13,53 @@ export class WhatsappService {
 
   private apiUrl = `https://graph.facebook.com/v21.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
 
+  private isAdmin(phone: string): boolean {
+    const admins = (process.env.ADMIN_PHONES || '').split(',').map(p => p.trim());
+    return admins.includes(phone);
+  }
+
+  private generateDailyCode(): string {
+    const today = new Date();
+    const datePart = `${today.getDate()}${today.getMonth() + 1}`; // e.g., 610 for Oct 6
+    return `ADMIN-${datePart}`;
+  }
+
   constructor(
     private readonly usersService: UsersService,
     private readonly sessionService: SessionService,
     private readonly mainMenuHandler: MainMenuHandler,
     private readonly buyPlanHandler: BuyPlanHandler,
     private readonly receiptUploadHandler: ReceiptUploadHandler,
+    private readonly adminHandler: AdminHandler,
   ) {}
 
   async handleIncomingMessage(from: string, message: any, type: string) {
+    if (this.isAdmin(from)) {
+      const input = message.trim().toUpperCase();
+
+      if (input === this.generateDailyCode()) {
+        try {
+          const response =
+            await this.adminHandler.showPendingTransactions(from);
+
+          if (response?.text?.body) {
+            await this.sendMessage(from, response.text.body);
+          } else {
+            await this.sendMessage(
+              from,
+              '✅ No pending transactions right now.',
+            );
+          }
+        } catch (err) {
+          this.logger.error('Failed to fetch pending transactions', err);
+          await this.sendMessage(
+            from,
+            '⚠️ Error fetching pending transactions. Please try again later.',
+          );
+        }
+      }
+    }
+
     const user = await this.usersService.findByPhone(from);
     if (!user) {
       await this.sendMessage(
@@ -75,7 +114,10 @@ export class WhatsappService {
       this.logger.log(
         `Session for ${user.name} (${from}): state=${session.state}, step=${session.step}, check 2`,
       );
-      if (session.state === 'BUY_PLAN' && session.step === 'AWAIT_RECEIPT_UPLOAD') {
+      if (
+        session.state === 'BUY_PLAN' &&
+        session.step === 'AWAIT_RECEIPT_UPLOAD'
+      ) {
         reply = await this.receiptUploadHandler.handleResponse(
           user.id,
           message,
@@ -134,6 +176,47 @@ export class WhatsappService {
       this.logger.error(
         `Failed to send message to ${to}`,
         error.response?.data || error.message,
+      );
+    }
+  }
+
+  async sendMessageTemplate(
+    to: string,
+    templateName: string,
+    components: any = {},
+  ) {
+    try {
+      await axios.post(
+        this.apiUrl,
+        {
+          messaging_product: 'whatsapp',
+          to,
+          type: 'template',
+          template: {
+            name: templateName,
+            language: { code: 'en' },
+            components: [
+              {
+                type: 'body',
+                parameters: Object.entries(components).map(([_, v]) => ({
+                  type: 'text',
+                  text: String(v),
+                })),
+              },
+            ],
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+    } catch (err) {
+      this.logger.error(
+        'Failed to send template message',
+        err.response?.data || err.message,
       );
     }
   }
