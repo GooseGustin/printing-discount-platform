@@ -31,7 +31,7 @@ export class ReceiptsService {
     // Step 1. Verify pending transaction
     const pendingTx = await this.transactionModel.findOne({
       where: { userId, status: 'pending' },
-      order: [['createdAt', 'DESC']],
+      order: [['uploadedAt', 'DESC']],
     });
 
     if (!pendingTx) {
@@ -42,19 +42,19 @@ export class ReceiptsService {
 
     // Step 2. Upload to Cloudinary
     let uploadedImageUrl = imageUrl;
-    try {
-      const result = await cloudinary.uploader.upload(imageUrl, {
-        folder: 'receipts',
-        public_id: `receipt_${userId}_${Date.now()}`,
-        resource_type: 'image',
-      });
-      uploadedImageUrl = result.secure_url;
-    } catch (error) {
-      console.error('Cloudinary upload failed:', error.message);
-      throw new BadRequestException(
-        'Failed to upload receipt image. Please try again.',
-      );
-    }
+    // try {
+    //   const result = await cloudinary.uploader.upload(imageUrl, {
+    //     folder: 'receipts',
+    //     public_id: `receipt_${userId}_${Date.now()}`,
+    //     resource_type: 'image',
+    //   });
+    //   uploadedImageUrl = result.secure_url;
+    // } catch (error) {
+    //   console.error('Cloudinary upload failed:', error.message);
+    //   throw new BadRequestException(
+    //     'Failed to upload receipt image. Please try again.',
+    //   );
+    // }
 
     // Step 3. Create receipt record
     const receipt = await this.receiptModel.create({
