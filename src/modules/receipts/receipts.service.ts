@@ -31,7 +31,7 @@ export class ReceiptsService {
     // Step 1. Verify pending transaction
     const pendingTx = await this.transactionModel.findOne({
       where: { userId, status: 'pending' },
-      order: [['uploadedAt', 'DESC']],
+      order: [['createdAt', 'DESC']],
     });
 
     if (!pendingTx) {
