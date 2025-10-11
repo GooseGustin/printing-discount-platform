@@ -46,5 +46,5 @@ export class Receipt extends Model<Receipt> {
     allowNull: false,
     defaultValue: DataType.NOW,
   })
-  uploadedAt: Date;
+  createdAt: Date;
 }

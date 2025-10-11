@@ -62,7 +62,7 @@ export class ReceiptsService {
       transactionId: pendingTx.id,
       imageUrl: uploadedImageUrl,
       status: 'pending',
-      uploadedAt: new Date(),
+      createdAt: new Date(),
     });
 
     return {
@@ -80,7 +80,7 @@ export class ReceiptsService {
     return this.receiptModel.findAll({
       where: { userId },
       include: [Transaction],
-      order: [['uploadedAt', 'DESC']],
+      order: [['createdAt', 'DESC']],
     });
   }
 
@@ -129,7 +129,7 @@ export class ReceiptsService {
   async findLatestPending(userId: string) {
     return this.receiptModel.findOne({
       where: { userId, status: 'pending' },
-      order: [['uploadedAt', 'DESC']],
+      order: [['createdAt', 'DESC']],
       include: [Transaction],
     });
   }
