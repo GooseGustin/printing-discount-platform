@@ -56,7 +56,7 @@ export class ReceiptUploadHandler {
       return { text: { body: '✅ Receipt uploaded successfully! It will be reviewed shortly.' } };
     } catch (error) {
       console.error(error);
-      return { text: { body: '❌ Failed to upload your receipt. Please try again.' } };
+      return { text: { body: `❌ Failed to upload your receipt. Please try again. ${error.message}` } };
     }
   }
 
