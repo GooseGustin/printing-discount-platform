@@ -48,7 +48,7 @@ export class MainMenuHandler {
         };
 
       case '3':
-        await this.sessionService.updateStateAndStep(userId, 'VIEW_PLANS', 'SHOW_HISTORY');
+        await this.sessionService.updateStateAndStep(userId, 'VIEW_HISTORY', 'SHOW_HISTORY');
         return { 
           text: { body: 'Fetching your transaction history...' } ,
           triggerNext: true, 

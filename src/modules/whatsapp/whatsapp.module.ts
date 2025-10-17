@@ -16,6 +16,7 @@ import { BuyPlanHandler } from './handlers/buy-plan.handler';
 import { ReceiptUploadHandler } from './handlers/receipt-upload.handler';
 import { AdminHandler } from './handlers/admin.handler';
 import { CheckBalanceHandler } from './handlers/check-balance.handler';
+import { ViewHistoryHandler } from './handlers/view-history.handler';
 
 @Module({
   imports: [
@@ -33,7 +34,8 @@ import { CheckBalanceHandler } from './handlers/check-balance.handler';
     BuyPlanHandler,
     CheckBalanceHandler,
     ReceiptUploadHandler,
-    AdminHandler
+    AdminHandler, 
+    ViewHistoryHandler
   ],
   exports: [WhatsappService],
 })

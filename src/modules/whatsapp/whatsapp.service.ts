@@ -7,6 +7,7 @@ import { BuyPlanHandler } from './handlers/buy-plan.handler';
 import { ReceiptUploadHandler } from './handlers/receipt-upload.handler';
 import { AdminHandler } from './handlers/admin.handler';
 import { CheckBalanceHandler } from './handlers/check-balance.handler';
+import { ViewHistoryHandler } from './handlers/view-history.handler';
 
 @Injectable()
 export class WhatsappService {
@@ -32,6 +33,7 @@ export class WhatsappService {
     private readonly buyPlanHandler: BuyPlanHandler,
     private readonly checkBalanceHandler: CheckBalanceHandler,
     private readonly receiptUploadHandler: ReceiptUploadHandler,
+    private readonly viewHistoryHandler: ViewHistoryHandler,
     private readonly adminHandler: AdminHandler,
   ) {}
 
@@ -157,8 +159,13 @@ export class WhatsappService {
           break;
 
         case 'CHECK_BALANCE':
-          // later → checkBalanceHandler
-          break;
+            reply = await this.checkBalanceHandler.handleResponse(user.phone);
+            break;
+
+        case 'VIEW_HISTORY':
+            // reply = await this.viewHistoryHandler.handleResponse(user.phone);
+            reply = await this.viewHistoryHandler.handleResponse(user.phone);
+            break;
       }
     }
   }
