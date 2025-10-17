@@ -19,7 +19,7 @@ export class MainMenuHandler {
         body: `Welcome to the CopyWise Platform! 🎉\n\nPlease choose an option:\n\n` +
               `1️⃣ Buy a Plan\n` +
               `2️⃣ Check Balance\n` +
-              `3️⃣ View Plans\n` +
+              `3️⃣ View History\n` +
               `4️⃣ Print/Copy Pages\n` +
               `5️⃣ More\n\n` + // get sign up form link or something
               `Reply with the number of your choice.`,
@@ -48,9 +48,9 @@ export class MainMenuHandler {
         };
 
       case '3':
-        await this.sessionService.updateStateAndStep(userId, 'VIEW_PLANS', 'SHOW_PLANS');
+        await this.sessionService.updateStateAndStep(userId, 'VIEW_PLANS', 'SHOW_HISTORY');
         return { 
-          text: { body: 'Fetching available plans for your location...' } ,
+          text: { body: 'Fetching your transaction history...' } ,
           triggerNext: true, 
         };
 
