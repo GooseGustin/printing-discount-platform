@@ -14,12 +14,12 @@ export class TransactionsController {
     return this.txService.create(body.userId, body.type, body.amount, body.reference, body.planId);
   }
 
-  @Patch(':id/approve')
+  @Get(':id/approve')
   async approve(@Param('id') id: string) {
     return this.txService.approve(id);
   }
 
-  @Patch(':id/reject')
+  @Get(':id/reject')
   async reject(@Param('id') id: string) {
     return this.txService.reject(id);
   }

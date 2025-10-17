@@ -102,11 +102,13 @@ export class WhatsappService {
             break;
 
           default:
-            reply = {
-              text: {
-                body: 'Sorry, I didn’t get that. Type "menu" to return.',
-              },
-            };
+            if (!this.isAdmin(from)) {
+              reply = {
+                text: {
+                  body: `I didn’t quite get that. Please type "menu" to see your options.`,
+                },
+              };
+            }
         }
       }
     } else if (type === 'image') {
