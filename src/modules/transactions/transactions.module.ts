@@ -5,6 +5,7 @@ import { TransactionsService } from "./transactions.service";
 import { Transaction } from "../../models/transaction.model";
 import { User } from "../../models/user.model";
 import { Plan } from "../../models/plan.model";
+import { Printer } from "../../models/printer.model";
 import { CalculationsModule } from "../calculations/calculations.module";
 import { WhatsappModule } from "../whatsapp/whatsapp.module";
 import { UsersModule } from "../users/users.module";
@@ -12,7 +13,7 @@ import { UsersModule } from "../users/users.module";
 // transactions.module.ts
 @Module({
   imports: [
-    SequelizeModule.forFeature([Transaction, User, Plan]), 
+    SequelizeModule.forFeature([Transaction, User, Plan, Printer]), 
     UsersModule, 
     forwardRef(() => WhatsappModule),  // 🩹 wrap this import
     CalculationsModule

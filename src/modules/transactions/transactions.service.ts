@@ -8,9 +8,9 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Transaction } from '../../models/transaction.model';
 import { User } from '../../models/user.model';
 import { Plan } from '../../models/plan.model';
+import { Printer } from '../../models/printer.model';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { UsersService } from '../users/users.service';
-import { Printer } from '../../models/printer.model';
 
 @Injectable()
 export class TransactionsService {
