@@ -8,6 +8,7 @@ import { SessionsModule } from '../sessions/sessions.module';
 import { PlansModule } from '../plans/plans.module';
 import { TransactionsModule } from '../transactions/transactions.module';
 import { ReceiptsModule } from '../receipts/receipts.module';
+import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 
 // Handlers
 import { MainMenuHandler } from './handlers/main-menu.handler';
@@ -23,6 +24,7 @@ import { CheckBalanceHandler } from './handlers/check-balance.handler';
     PlansModule,
     forwardRef(() => TransactionsModule), // 🩹 wrap this too
     ReceiptsModule,
+    SubscriptionsModule,
   ],
   controllers: [WhatsappController],
   providers: [
