@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Transaction } from '../../models/transaction.model';
 import { User } from '../../models/user.model';
@@ -12,6 +12,7 @@ export class TransactionsService {
     @InjectModel(Transaction) private readonly txModel: typeof Transaction,
     @InjectModel(User) private readonly userModel: typeof User,
     @InjectModel(Plan) private readonly planModel: typeof Plan,
+    @Inject(forwardRef(() => WhatsappService))
     private readonly whatsappService: WhatsappService,
     private readonly usersService: UsersService,
   ) {}

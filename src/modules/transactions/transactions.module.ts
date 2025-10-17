@@ -1,5 +1,5 @@
 import { SequelizeModule } from "@nestjs/sequelize";
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from '@nestjs/common';
 import { TransactionsController } from "./transactions.controller";
 import { TransactionsService } from "./transactions.service";
 import { Transaction } from "../../models/transaction.model";
@@ -11,7 +11,12 @@ import { UsersModule } from "../users/users.module";
 
 // transactions.module.ts
 @Module({
-  imports: [SequelizeModule.forFeature([Transaction, User, Plan]), UsersModule, WhatsappModule, CalculationsModule],
+  imports: [
+    SequelizeModule.forFeature([Transaction, User, Plan]), 
+    UsersModule, 
+    forwardRef(() => WhatsappModule),  // 🩹 wrap this import
+    CalculationsModule
+  ],
   providers: [TransactionsService],
   controllers: [TransactionsController],
   exports: [TransactionsService]

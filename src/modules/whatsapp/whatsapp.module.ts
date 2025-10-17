@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { WhatsappController } from './whatsapp.controller';
 import { WhatsappService } from './whatsapp.service';
 
@@ -20,7 +20,7 @@ import { AdminHandler } from './handlers/admin.handler';
     UsersModule,
     SessionsModule,
     PlansModule,
-    TransactionsModule,
+    forwardRef(() => TransactionsModule), // 🩹 wrap this too
     ReceiptsModule,
   ],
   controllers: [WhatsappController],
