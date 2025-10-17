@@ -148,9 +148,10 @@ export class WhatsappService {
     // If triggerNext was set, call the next handler immediately
     if (reply?.triggerNext) {
       const updatedSession = await this.sessionService.getOrCreate(user.id);
+      let followUp: any;
       switch (updatedSession.state) {
         case 'BUY_PLAN':
-          const followUp = await this.buyPlanHandler.handleResponse(
+          followUp = await this.buyPlanHandler.handleResponse(
             user.phone,
             '',
           );
@@ -159,13 +160,18 @@ export class WhatsappService {
           break;
 
         case 'CHECK_BALANCE':
-            reply = await this.checkBalanceHandler.handleResponse(user.phone);
-            break;
+          followUp = await this.checkBalanceHandler.handleResponse(user.phone);
+            
+          if (followUp?.text?.body)
+            await this.sendMessage(from, followUp.text.body);
+          break;
 
         case 'VIEW_HISTORY':
-            // reply = await this.viewHistoryHandler.handleResponse(user.phone);
-            reply = await this.viewHistoryHandler.handleResponse(user.phone);
-            break;
+          followUp = await this.viewHistoryHandler.handleResponse(user.phone);
+            
+          if (followUp?.text?.body)
+            await this.sendMessage(from, followUp.text.body);
+          break;
       }
     }
   }
