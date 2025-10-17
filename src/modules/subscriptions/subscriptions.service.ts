@@ -18,7 +18,8 @@ export class SubscriptionsService {
     const active = await this.subModel.findOne({
       where: { userId, status: 'active' },
     });
-    if (active) throw new BadRequestException('User already has an active subscription');
+    if (active)
+      throw new BadRequestException('User already has an active subscription');
 
     const user = await this.userModel.findByPk(userId);
     if (!user || user.role !== 'student') {
@@ -58,7 +59,7 @@ export class SubscriptionsService {
     });
     if (!sub) {
       return {
-        message: 'No subscription found for this user'
+        message: 'No subscription found for this user',
       };
     }
 
@@ -97,6 +98,16 @@ export class SubscriptionsService {
       remainingPrintingPages: sub.remainingPrintingPages,
       remainingPhotocopyPages: sub.remainingPhotocopyPages,
     };
-}
+  }
 
+  async getActiveSubscriptionWithPlan(userId: string) {
+    const sub = await this.subModel.findOne({
+      where: { userId, status: 'active' },
+      include: [this.planModel],
+      order: [['createdAt', 'DESC']],
+    });
+
+    if (!sub) throw new BadRequestException('No active subscription');
+    return sub;
+  }
 }

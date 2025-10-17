@@ -60,7 +60,7 @@ export class Transaction extends Model<Transaction> {
   amount: number;
 
   @Column(DataType.STRING)
-  description: string;
+  description: string; // printed x pages, copied y pages
 
   @Column(DataType.STRING) // optional external reference
   reference: string;

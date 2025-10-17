@@ -14,6 +14,7 @@ import { MainMenuHandler } from './handlers/main-menu.handler';
 import { BuyPlanHandler } from './handlers/buy-plan.handler';
 import { ReceiptUploadHandler } from './handlers/receipt-upload.handler';
 import { AdminHandler } from './handlers/admin.handler';
+import { CheckBalanceHandler } from './handlers/check-balance.handler';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AdminHandler } from './handlers/admin.handler';
     WhatsappService,
     MainMenuHandler,
     BuyPlanHandler,
+    CheckBalanceHandler,
     ReceiptUploadHandler,
     AdminHandler
   ],

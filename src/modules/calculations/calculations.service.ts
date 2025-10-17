@@ -37,6 +37,7 @@ export class CalculationsService {
 
     const subscription = await this.subModel.findOne({
       where: { userId, status: 'active' },
+      order: [['createdAt', 'DESC']],
     });
     if (!subscription) throw new BadRequestException('No active subscription');
 

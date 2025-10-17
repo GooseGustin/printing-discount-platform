@@ -6,7 +6,7 @@ import { BuyPlanHandler } from './buy-plan.handler';
 export class MainMenuHandler {
   constructor(
     private readonly sessionService: SessionService,
-    private readonly buyPlanHandler: BuyPlanHandler,
+    // private readonly buyPlanHandler: BuyPlanHandler,
     
   ) {}
 
