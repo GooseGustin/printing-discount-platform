@@ -1,5 +1,5 @@
 // src/modules/whatsapp/handlers/view-history.handler.ts
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { UsersService } from '../../users/users.service';
 import { TransactionsService } from '../../transactions/transactions.service';
 import { SessionService } from '../../sessions/sessions.service';
@@ -8,6 +8,7 @@ import { SessionService } from '../../sessions/sessions.service';
 export class ViewHistoryHandler {
   constructor(
     private readonly usersService: UsersService,
+    @Inject(forwardRef(() => TransactionsService))
     private readonly transactionsService: TransactionsService,
     private readonly sessionService: SessionService,
   ) {}
