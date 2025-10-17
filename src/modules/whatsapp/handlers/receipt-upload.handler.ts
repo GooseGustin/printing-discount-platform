@@ -1,7 +1,7 @@
 // src/modules/whatsapp/handlers/receipt-upload.handler.ts
 import { Injectable, BadRequestException } from '@nestjs/common';
 import axios from 'axios';
-import { TransactionsService } from '../../transactions/transactions.service';
+// import { TransactionsService } from '../../transactions/transactions.service';
 import { ReceiptsService } from '../../receipts/receipts.service';
 import { SessionService } from '../../sessions/sessions.service';
 import { v2 as cloudinary } from 'cloudinary';
@@ -9,7 +9,7 @@ import { v2 as cloudinary } from 'cloudinary';
 @Injectable()
 export class ReceiptUploadHandler {
   constructor(
-    private readonly transactionsService: TransactionsService,
+    // private readonly transactionsService: TransactionsService,
     private readonly receiptsService: ReceiptsService,
     private readonly sessionService: SessionService,
   ) {

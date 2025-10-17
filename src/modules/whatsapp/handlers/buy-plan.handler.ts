@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { UsersService } from '../../users/users.service';
 import { PlansService } from '../../plans/plans.service';
 import { TransactionsService } from '../../transactions/transactions.service';
@@ -12,6 +12,7 @@ export class BuyPlanHandler {
   constructor(
     private readonly usersService: UsersService,
     private readonly plansService: PlansService,
+    @Inject(forwardRef(() => TransactionsService))
     private readonly transactionsService: TransactionsService,
     private readonly sessionService: SessionService,
   ) {}

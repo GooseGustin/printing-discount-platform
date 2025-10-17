@@ -1,5 +1,4 @@
-// src/modules/whatsapp/handlers/admin.handler.ts
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { TransactionsService } from '../../transactions/transactions.service';
 import { UsersService } from '../../users/users.service';
 import { ReceiptsService } from '../../receipts/receipts.service';
@@ -7,6 +6,7 @@ import { ReceiptsService } from '../../receipts/receipts.service';
 @Injectable()
 export class AdminHandler {
   constructor(
+    @Inject(forwardRef(() => TransactionsService))
     private readonly transactionsService: TransactionsService,
     private readonly usersService: UsersService,
     private readonly receiptsService: ReceiptsService,
