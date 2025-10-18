@@ -9,6 +9,7 @@ import { Transaction } from '../../models/transaction.model';
 import { User } from '../../models/user.model';
 import { Plan } from '../../models/plan.model';
 import { Printer } from '../../models/printer.model';
+import { Subscription } from '../../models/subscription.model';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { UsersService } from '../users/users.service';
 
@@ -19,6 +20,7 @@ export class TransactionsService {
     @InjectModel(User) private readonly userModel: typeof User,
     @InjectModel(Plan) private readonly planModel: typeof Plan,
     @InjectModel(Printer) private readonly printerModel: typeof Printer,
+    @InjectModel(Subscription) private readonly subModel: typeof Subscription,  
     @Inject(forwardRef(() => WhatsappService))
     private readonly whatsappService: WhatsappService,
     private readonly usersService: UsersService,
@@ -60,20 +62,54 @@ export class TransactionsService {
   async approve(id: string) {
     const tx = await this.txModel.findByPk(id);
     if (!tx) throw new BadRequestException('Transaction not found');
+
+    // 1️⃣ Approve the transaction
     tx.status = 'approved';
     await tx.save();
 
-    // Fetch user to send WhatsApp message
-    const user = await this.usersService.findById(tx.userId);
+    // 2️⃣ Ensure it's a payment transaction (not a usage/refund)
+    if (tx.type === 'payment') {
+      // Fetch user and plan
+      const user = await this.usersService.findById(tx.userId);
+      const plan = await this.planModel.findByPk(tx.planId);
+      if (!user || !plan) {
+        throw new BadRequestException('Missing user or plan for subscription');
+      }
 
-    if (user?.phone) {
-      await this.whatsappService.sendMessage(
-        user.phone,
-        `✅ Your payment has been approved!\n\nPlan: ${tx.description || 'N/A'}\nAmount: ₦${tx.amount}\nReference: ${tx.reference}\n\nYour subscription is now active. 🎉`,
-      );
+      // 3️⃣ Create a new subscription
+      const startDate = new Date();
+      const endDate = new Date(startDate);
+      if (plan.duration === 'monthly') {
+        endDate.setMonth(endDate.getMonth() + 1);
+      } else if (plan.duration === 'weekly') {
+        endDate.setDate(endDate.getDate() + 7);
+      }
+
+      await this.subModel.create({
+        userId: user.id,
+        planId: plan.id,
+        status: 'active',
+        weekNumber: 1,
+        remainingPrintingPages: plan.printingTotalPages,
+        remainingPhotocopyPages: plan.photocopyTotalPages,
+        startDate,
+        endDate,
+      });
+
+      // 4️⃣ Send WhatsApp confirmation
+      if (user.phone) {
+        await this.whatsappService.sendMessage(
+          user.phone,
+          `✅ *Payment Approved!*\n\n` +
+            `Your subscription is now active. 🎉\n\n` +
+            `📘 *Plan:* ${plan.name}\n💰 *Amount:* ₦${tx.amount}\n🧾 *Reference:* ${tx.reference}\n` +
+            `📅 *Duration:* ${plan.duration}\n\n` +
+            `You can now start printing or copying at discounted rates! 🖨️`,
+        );
+      }
     }
 
-    return tx;
+    return { message: 'Transaction approved successfully' };
   }
 
   async reject(id: string) {
@@ -92,7 +128,7 @@ export class TransactionsService {
       );
     }
 
-    return tx;
+    return { message: 'Transaction rejected successfully' };
   }
 
   async findByUser(userId: string) {

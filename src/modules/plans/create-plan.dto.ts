@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsArray, IsOptional } from 'class-validator';
+import { IsString, IsIn, IsNumber, IsArray, IsOptional } from 'class-validator';
 
 export class CreatePlanDto {
   @IsString()
@@ -31,8 +31,9 @@ export class CreatePlanDto {
   @IsNumber()
   photocopyInitialCap: number;
 
-  @IsString()
-  duration: 'monthly' | 'weekly';
+  @IsOptional()
+  @IsIn(['monthly'])
+  duration: 'monthly' = 'monthly';
 
   @IsString()
   location: string; // e.g. "UNIJOS-PLATEAU"
