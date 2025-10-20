@@ -20,7 +20,7 @@ export class TransactionsService {
     @InjectModel(User) private readonly userModel: typeof User,
     @InjectModel(Plan) private readonly planModel: typeof Plan,
     @InjectModel(Printer) private readonly printerModel: typeof Printer,
-    @InjectModel(Subscription) private readonly subModel: typeof Subscription,  
+    @InjectModel(Subscription) private readonly subModel: typeof Subscription,
     @Inject(forwardRef(() => WhatsappService))
     private readonly whatsappService: WhatsappService,
     private readonly usersService: UsersService,
@@ -63,28 +63,31 @@ export class TransactionsService {
     const tx = await this.txModel.findByPk(id);
     if (!tx) throw new BadRequestException('Transaction not found');
 
-    // 1️⃣ Approve the transaction
+    // 1️⃣ Approve transaction
     tx.status = 'approved';
     await tx.save();
 
-    // 2️⃣ Ensure it's a payment transaction (not a usage/refund)
+    // 2️⃣ Handle payment transaction → activate subscription
     if (tx.type === 'payment') {
-      // Fetch user and plan
       const user = await this.usersService.findById(tx.userId);
       const plan = await this.planModel.findByPk(tx.planId);
+
       if (!user || !plan) {
         throw new BadRequestException('Missing user or plan for subscription');
       }
 
-      // 3️⃣ Create a new subscription
+      // 3️⃣ Expire any previous active subscriptions for this user
+      await this.subModel.update(
+        { status: 'expired' },
+        { where: { userId: user.id, status: 'active' } },
+      );
+
+      // 4️⃣ Determine new subscription start & end dates
       const startDate = new Date();
       const endDate = new Date(startDate);
-      if (plan.duration === 'monthly') {
-        endDate.setMonth(endDate.getMonth() + 1);
-      } else if (plan.duration === 'weekly') {
-        endDate.setDate(endDate.getDate() + 7);
-      }
-
+      endDate.setMonth(endDate.getMonth() + 1);
+      
+      // 5️⃣ Create the new subscription
       await this.subModel.create({
         userId: user.id,
         planId: plan.id,
@@ -96,7 +99,7 @@ export class TransactionsService {
         endDate,
       });
 
-      // 4️⃣ Send WhatsApp confirmation
+      // 6️⃣ Notify user via WhatsApp
       if (user.phone) {
         await this.whatsappService.sendMessage(
           user.phone,

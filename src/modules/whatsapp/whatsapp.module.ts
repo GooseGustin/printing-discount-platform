@@ -17,6 +17,8 @@ import { ReceiptUploadHandler } from './handlers/receipt-upload.handler';
 import { AdminHandler } from './handlers/admin.handler';
 import { CheckBalanceHandler } from './handlers/check-balance.handler';
 import { ViewHistoryHandler } from './handlers/view-history.handler';
+import { MakeTransactionHandler } from './handlers/make-transaction.handler';
+import { CalculationsModule } from '../calculations/calculations.module';
 
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { ViewHistoryHandler } from './handlers/view-history.handler';
     forwardRef(() => TransactionsModule), // 🩹 wrap this too
     ReceiptsModule,
     SubscriptionsModule,
+    CalculationsModule,
   ],
   controllers: [WhatsappController],
   providers: [
@@ -35,7 +38,8 @@ import { ViewHistoryHandler } from './handlers/view-history.handler';
     CheckBalanceHandler,
     ReceiptUploadHandler,
     AdminHandler, 
-    ViewHistoryHandler
+    ViewHistoryHandler, 
+    MakeTransactionHandler,
   ],
   exports: [WhatsappService],
 })

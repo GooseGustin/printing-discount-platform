@@ -8,6 +8,7 @@ import { ReceiptUploadHandler } from './handlers/receipt-upload.handler';
 import { AdminHandler } from './handlers/admin.handler';
 import { CheckBalanceHandler } from './handlers/check-balance.handler';
 import { ViewHistoryHandler } from './handlers/view-history.handler';
+import { MakeTransactionHandler } from './handlers/make-transaction.handler';
 
 @Injectable()
 export class WhatsappService {
@@ -16,7 +17,9 @@ export class WhatsappService {
   private apiUrl = `https://graph.facebook.com/v21.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
 
   private isAdmin(phone: string): boolean {
-    const admins = (process.env.ADMIN_PHONES || '').split(',').map(p => p.trim());
+    const admins = (process.env.ADMIN_PHONES || '')
+      .split(',')
+      .map((p) => p.trim());
     return admins.includes(phone);
   }
 
@@ -35,6 +38,7 @@ export class WhatsappService {
     private readonly receiptUploadHandler: ReceiptUploadHandler,
     private readonly viewHistoryHandler: ViewHistoryHandler,
     private readonly adminHandler: AdminHandler,
+    private readonly makeTransactionHandler: MakeTransactionHandler,
   ) {}
 
   async handleIncomingMessage(from: string, message: any, type: string) {
@@ -109,6 +113,39 @@ export class WhatsappService {
             reply = await this.checkBalanceHandler.handleResponse(user.phone);
             break;
 
+          case 'USAGE_REQUEST':
+            if (session.step === 'AWAIT_USAGE') {
+              reply = await this.makeTransactionHandler.handleUsage(
+                user.id,
+                message,
+              );
+            } else if (session.step === 'CONFIRM_USAGE') {
+              reply = await this.makeTransactionHandler.confirmUsage(
+                user.id,
+                message,
+              );
+            }
+            break;
+
+          case 'USAGE_REQUEST':
+            if (session.step === 'AWAIT_USAGE') {
+              reply = await this.makeTransactionHandler.handleUsage(
+                user.id,
+                message,
+              );
+            } else if (session.step === 'AWAIT_PRINTER_SELECTION') {
+              reply = await this.makeTransactionHandler.handlePrinterSelection(
+                user.id,
+                message,
+              );
+            } else if (session.step === 'CONFIRM_USAGE') {
+              reply = await this.makeTransactionHandler.confirmUsage(
+                user.id,
+                message,
+              );
+            }
+            break;
+
           default:
             if (!this.isAdmin(from)) {
               reply = {
@@ -151,24 +188,21 @@ export class WhatsappService {
       let followUp: any;
       switch (updatedSession.state) {
         case 'BUY_PLAN':
-          followUp = await this.buyPlanHandler.handleResponse(
-            user.phone,
-            '',
-          );
+          followUp = await this.buyPlanHandler.handleResponse(user.phone, '');
           if (followUp?.text?.body)
             await this.sendMessage(from, followUp.text.body);
           break;
 
         case 'CHECK_BALANCE':
           followUp = await this.checkBalanceHandler.handleResponse(user.phone);
-            
+
           if (followUp?.text?.body)
             await this.sendMessage(from, followUp.text.body);
           break;
 
         case 'VIEW_HISTORY':
           followUp = await this.viewHistoryHandler.handleResponse(user.phone);
-            
+
           if (followUp?.text?.body)
             await this.sendMessage(from, followUp.text.body);
           break;

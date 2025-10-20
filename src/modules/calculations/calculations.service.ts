@@ -28,13 +28,10 @@ export class CalculationsService {
   async estimate(
     userId: string,
     printerId: string,
-    serviceType: 'printing' | 'photocopy',
-    pages: number,
+    serviceType: 'printing' | 'photocopy' | 'mixed',
+    printingPages: number,
+    photocopyPages: number,
   ) {
-    if (!['printing', 'photocopy'].includes(serviceType)) {
-      throw new BadRequestException(`Invalid serviceType: ${serviceType}`);
-    }
-
     const subscription = await this.subModel.findOne({
       where: { userId, status: 'active' },
       order: [['createdAt', 'DESC']],
@@ -48,23 +45,49 @@ export class CalculationsService {
     if (!printer) throw new BadRequestException('Printer not found');
 
     const weekNumber = getCurrentWeek(subscription);
-    const cap = getWeeklyCap(plan, weekNumber, serviceType);
-
-    let remaining: number;
-    let baseCost: number;
-    let discountedCost: number;
 
     if (serviceType === 'printing') {
-      remaining = subscription.remainingPrintingPages;
-      baseCost = printer.baseCostPrinting;
-      discountedCost = printer.discountedPricePrinting;
-    } else {
-      remaining = subscription.remainingPhotocopyPages;
-      baseCost = printer.baseCostPhotocopy;
-      discountedCost = printer.discountedPricePhotocopy;
+      const cap = getWeeklyCap(plan, weekNumber, 'printing');
+      return calculateCost(
+        printingPages,
+        subscription.remainingPrintingPages,
+        cap,
+        printer.baseCostPrinting,
+        printer.discountedPricePrinting,
+      );
     }
 
-    return calculateCost(pages, remaining, cap, baseCost, discountedCost);
+    if (serviceType === 'photocopy') {
+      const cap = getWeeklyCap(plan, weekNumber, 'photocopy');
+      return calculateCost(
+        photocopyPages,
+        subscription.remainingPhotocopyPages,
+        cap,
+        printer.baseCostPhotocopy,
+        printer.discountedPricePhotocopy,
+      );
+    }
+
+    // 👇 Mixed service
+    if (serviceType === 'mixed') {
+      const printingCap = getWeeklyCap(plan, weekNumber, 'printing');
+      const photocopyCap = getWeeklyCap(plan, weekNumber, 'photocopy');
+
+      const mixedResult = calculateMixed(
+        printingPages,
+        photocopyPages,
+        subscription.remainingPrintingPages,
+        subscription.remainingPhotocopyPages,
+        printingCap,
+        photocopyCap,
+        printer.baseCostPrinting,
+        printer.discountedPricePrinting,
+        printer.baseCostPhotocopy,
+        printer.discountedPricePhotocopy,
+      );
+
+      return mixedResult; // same structure as calculateCost()
+    }
   }
 
   async deduct(
