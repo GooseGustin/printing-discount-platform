@@ -119,20 +119,6 @@ export class WhatsappService {
                 user.id,
                 message,
               );
-            } else if (session.step === 'CONFIRM_USAGE') {
-              reply = await this.makeTransactionHandler.confirmUsage(
-                user.id,
-                message,
-              );
-            }
-            break;
-
-          case 'USAGE_REQUEST':
-            if (session.step === 'AWAIT_USAGE') {
-              reply = await this.makeTransactionHandler.handleUsage(
-                user.id,
-                message,
-              );
             } else if (session.step === 'AWAIT_PRINTER_SELECTION') {
               reply = await this.makeTransactionHandler.handlePrinterSelection(
                 user.id,
