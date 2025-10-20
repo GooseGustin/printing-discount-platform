@@ -110,4 +110,18 @@ export class SubscriptionsService {
     if (!sub) throw new BadRequestException('No active subscription');
     return sub;
   }
+
+  async hasActiveSubscription(userId: string): Promise<boolean> {
+    const active = await this.subModel.findOne({
+      where: { userId, status: 'active' },
+    });
+    return !!active;
+  }
+
+  async getActiveSubscription(userId: string) {
+    return this.subModel.findOne({
+      where: { userId, status: 'active' },
+      include: [Plan],
+    });
+  }
 }

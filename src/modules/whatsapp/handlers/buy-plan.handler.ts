@@ -3,6 +3,7 @@ import { UsersService } from '../../users/users.service';
 import { PlansService } from '../../plans/plans.service';
 import { TransactionsService } from '../../transactions/transactions.service';
 import { SessionService } from '../../sessions/sessions.service';
+import { SubscriptionsService } from '../../subscriptions/subscriptions.service';
 import { generateReference } from '../../../common/utils/reference.util';
 
 @Injectable()
@@ -15,17 +16,18 @@ export class BuyPlanHandler {
     @Inject(forwardRef(() => TransactionsService))
     private readonly transactionsService: TransactionsService,
     private readonly sessionService: SessionService,
+    private readonly subscriptionsService: SubscriptionsService, // 👈 add this
   ) {}
 
   async handleResponse(userPhone: string, message: string) {
     const user = await this.usersService.findByPhone(userPhone);
     let session = await this.sessionService.getOrCreate(user.id);
     this.logger.log(
-          `Session for ${user.name}, ${userPhone}: state=${session.state}, step=${session.step}, check 3`,
-        );
+      `Session for ${user.name}, ${userPhone}: state=${session.state}, step=${session.step}, check 3`,
+    );
     const { state, step, context } = session;
 
-    // STEP 1 — Show plans for user's location
+    // STEP 0 — Show plans for user's location
     if (state !== 'BUY_PLAN' || step === 'SHOW_PLANS') {
       const plans = await this.plansService.findByLocation(user.location);
 
@@ -53,10 +55,31 @@ export class BuyPlanHandler {
       );
 
       this.logger.log(
-          `Session for ${user.name}, ${userPhone}: state=${session.state}, step=${session.step}, check 4, ${text}`,
-        );
+        `Session for ${user.name}, ${userPhone}: state=${session.state}, step=${session.step}, check 4, ${text}`,
+      );
 
       return { text: { body: text } };
+    }
+    // STEP 1 — Check if user already has an active subscription
+    const hasActive = await this.subscriptionsService.hasActiveSubscription(
+      user.id,
+    );
+
+    if (hasActive) {
+      const activeSub = await this.subscriptionsService.getActiveSubscription(
+        user.id,
+      );
+      const expiryDate =
+        activeSub.endDate?.toLocaleDateString('en-GB') || 'N/A';
+      const planName = activeSub.plan?.name || 'your current plan';
+
+      return {
+        text: {
+          body:
+            `⚠️ You already have an active subscription (${planName}) that expires on ${expiryDate}.\n\n` +
+            `You can only purchase a new plan after your current one expires.`,
+        },
+      };
     }
 
     // STEP 2 — User chooses a plan or upload option
@@ -142,7 +165,11 @@ export class BuyPlanHandler {
 
       if (input === 'NO' || input === 'CANCEL') {
         await this.sessionService.resetToMainMenu(user.id);
-        return { text: { body: 'Purchase cancelled. Type "menu" to return to main menu.' } };
+        return {
+          text: {
+            body: 'Purchase cancelled. Type "menu" to return to main menu.',
+          },
+        };
       }
 
       return { text: { body: 'Please reply with "YES" or "NO".' } };
@@ -160,7 +187,9 @@ export class BuyPlanHandler {
     }
 
     return {
-      text: { body: 'Sorry, I didn’t get that. Please reply with a number from the menu.' },
+      text: {
+        body: 'Sorry, I didn’t get that. Please reply with a number from the menu.',
+      },
     };
   }
 }
