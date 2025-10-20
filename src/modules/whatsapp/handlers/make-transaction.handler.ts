@@ -9,8 +9,9 @@ import { randomUUID } from 'crypto';
 
 @Injectable()
 export class MakeTransactionHandler {
+  private readonly logger = new Logger(MakeTransactionHandler.name),
+
   constructor(
-    private readonly logger = new Logger(MakeTransactionHandler.name),
     private readonly sessionService: SessionService,
     private readonly calcService: CalculationsService,
     private readonly usersService: UsersService,
