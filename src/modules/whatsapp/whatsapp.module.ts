@@ -19,7 +19,7 @@ import { CheckBalanceHandler } from './handlers/check-balance.handler';
 import { ViewHistoryHandler } from './handlers/view-history.handler';
 import { MakeTransactionHandler } from './handlers/make-transaction.handler';
 import { CalculationsModule } from '../calculations/calculations.module';
-import { Printer } from '@/models/printer.model';
+import { Printer } from '../../models/printer.model';
 import { SequelizeModule } from '@nestjs/sequelize';
 
 @Module({
