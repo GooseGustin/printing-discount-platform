@@ -1,5 +1,5 @@
 // src/modules/whatsapp/handlers/make-transaction.handler.ts
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { SessionService } from '../../sessions/sessions.service';
 import { CalculationsService } from '../../calculations/calculations.service';
 import { UsersService } from '../../users/users.service';
@@ -10,6 +10,7 @@ import { randomUUID } from 'crypto';
 @Injectable()
 export class MakeTransactionHandler {
   constructor(
+    private readonly logger = new Logger(MakeTransactionHandler.name),
     private readonly sessionService: SessionService,
     private readonly calcService: CalculationsService,
     private readonly usersService: UsersService,
@@ -89,6 +90,9 @@ export class MakeTransactionHandler {
   // STEP 3️⃣: Handle printer selection and show estimate
   async handlePrinterSelection(userId: string, message: string) {
     const session = await this.sessionService.getOrCreate(userId);
+    this.logger.log(
+      `Session for handling printer selection: state=${session.state}, step=${session.step}, check 3`,
+    );
     const { printingPages, photocopyPages, printers } = session.context;
 
     const selectedIndex = parseInt(message.trim()) - 1;
@@ -146,6 +150,9 @@ export class MakeTransactionHandler {
   // STEP 4️⃣: Confirm or cancel transaction
   async confirmUsage(userId: string, message: string) {
     const session = await this.sessionService.getOrCreate(userId);
+    this.logger.log(
+      `Session for handling usage confirmation: state=${session.state}, step=${session.step}, check 4`,
+    );
     const { printingPages, photocopyPages, printerId, serviceType } =
       session.context;
 
