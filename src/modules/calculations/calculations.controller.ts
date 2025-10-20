@@ -10,9 +10,10 @@ export class CalculationsController {
     userId: string; 
     printerId: string; 
     serviceType: "printing"|"photocopy"; 
-    pages: number 
+    printingPages: number,
+    photocopyPages: number,
   }) {
-    return this.calcService.estimate(body.userId, body.printerId, body.serviceType, body.pages);
+    return this.calcService.estimate(body.userId, body.printerId, body.serviceType, body.printingPages, body.photocopyPages);
   }
 
   @Post('deduct')
