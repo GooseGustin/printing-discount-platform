@@ -9,6 +9,7 @@ import { AdminHandler } from './handlers/admin.handler';
 import { CheckBalanceHandler } from './handlers/check-balance.handler';
 import { ViewHistoryHandler } from './handlers/view-history.handler';
 import { MakeTransactionHandler } from './handlers/make-transaction.handler';
+import { MoreOptionsHandler } from './handlers/more-options.handler';
 
 @Injectable()
 export class WhatsappService {
@@ -39,6 +40,7 @@ export class WhatsappService {
     private readonly viewHistoryHandler: ViewHistoryHandler,
     private readonly adminHandler: AdminHandler,
     private readonly makeTransactionHandler: MakeTransactionHandler,
+    private readonly moreOptionsHandler: MoreOptionsHandler,
   ) {}
 
   async handleIncomingMessage(from: string, message: any, type: string) {
@@ -88,6 +90,11 @@ export class WhatsappService {
     if (type === 'text') {
       if (['hi', 'menu'].includes(message.trim().toLowerCase())) {
         reply = await this.mainMenuHandler.showMenu(user.id);
+      } else if (
+        message.startsWith('5') ||
+        message.toLowerCase().includes('more')
+      ) {
+        return await this.moreOptionsHandler.handleResponse(from, message);
       } else {
         switch (session.state) {
           case 'MAIN_MENU':

@@ -1,4 +1,5 @@
 import { forwardRef, Module } from '@nestjs/common';
+import { SequelizeModule } from '@nestjs/sequelize';
 import { WhatsappController } from './whatsapp.controller';
 import { WhatsappService } from './whatsapp.service';
 
@@ -20,7 +21,7 @@ import { ViewHistoryHandler } from './handlers/view-history.handler';
 import { MakeTransactionHandler } from './handlers/make-transaction.handler';
 import { CalculationsModule } from '../calculations/calculations.module';
 import { Printer } from '../../models/printer.model';
-import { SequelizeModule } from '@nestjs/sequelize';
+import { MoreOptionsHandler } from './handlers/more-options.handler';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
     AdminHandler, 
     ViewHistoryHandler, 
     MakeTransactionHandler,
+    MoreOptionsHandler
   ],
   exports: [WhatsappService],
 })
